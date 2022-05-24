@@ -2,7 +2,7 @@ import pygame
 
 pygame.init()
 
-screen = pygame.display.set_mode((700,700))
+screen = pygame.display.set_mode((800,700))
 
 SQUARE_SIZE = 80
 GREEN = (0,150,0)
@@ -28,6 +28,7 @@ chess_board = [['BR','BP','  ','  ','  ','  ','WP','WR'],
 
 font = pygame.font.SysFont('sans',20)
 big_font = pygame.font.SysFont('sans',40)
+middle_font = pygame.font.SysFont('sans',30)
 white_pawn_image = pygame.image.load("white_pawn.png")
 black_pawn_image = pygame.image.load("black_pawn.png")
 white_rock_image = pygame.image.load("white_rock.png")
@@ -86,6 +87,8 @@ black_pawn_2_grid = False
 white_pawn_special_move = False
 black_pawn_special_move = False
 repeated_moves = []
+white_total_time = 36000
+black_total_time = 36000
 
 clock = pygame.time.Clock()
 
@@ -652,11 +655,11 @@ def special_draw_case():
 
 def end_game():
 	
-	if white_turn and end_game_for_white() == "LOSE":
+	if (white_turn and end_game_for_white() == "LOSE") or white_total_time == 0:
 		return "BLACK WIN"
 	if white_turn and end_game_for_white() == "DRAW":
 		return "DRAW"
-	if black_turn and end_game_for_black() == "LOSE":
+	if (black_turn and end_game_for_black() == "LOSE") or black_total_time == 0:
 		return "WHITE WIN"
 	if black_turn and end_game_for_black() == "DRAW":
 		return "DRAW"
@@ -666,6 +669,21 @@ def end_game():
 		return "DRAW"
 	else:
 		return "UNKNOWN"
+
+
+def mins(total_time):
+	minute = int(total_time/3600)
+	if minute < 10:
+		return '0' + str(minute)
+	else:
+		return str(minute)
+
+def secs(total_time):
+	second = int((total_time - 3600*int(total_time/3600))/60)
+	if second < 10:
+		return '0' + str(second)
+	else:
+		return str(second)
 
 
 while running:
@@ -698,6 +716,22 @@ while running:
 		screen.blit(letter, (SQUARE_SIZE*(i+1) - 15, 675))
 		number = font.render(str(i+1),True,WHITE)
 		screen.blit(number,(10, SQUARE_SIZE*(7-i) + 60))
+
+
+	#time board
+	pygame.draw.rect(screen, WHITE, (690, 30, 90, 40))
+	pygame.draw.rect(screen, WHITE, (690, 630, 90, 40))
+	white_time = mins(white_total_time) + " : " + secs(white_total_time)
+	black_time = mins(black_total_time) + " : " + secs(black_total_time)
+	white_time_letter = middle_font.render(white_time, True, BLACK)
+	black_time_letter = middle_font.render(black_time, True, BLACK)
+	screen.blit(white_time_letter,(696, 630))
+	screen.blit(black_time_letter,(696, 30))
+	if len(repeated_moves) > 0 and white_turn and white_total_time > 0 and end_game() == "UNKNOWN":
+		white_total_time -= 1
+	if black_turn and black_total_time > 0 and end_game() == "UNKNOWN":
+		black_total_time -= 1
+
 
 
 	if hold_chess:
@@ -820,6 +854,8 @@ while running:
 						white_pawn_special_move = False
 						black_pawn_special_move = False
 						repeated_moves = []
+						white_total_time = 36000
+						black_total_time = 36000
 
 
 				else:
